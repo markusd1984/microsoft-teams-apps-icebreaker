@@ -781,5 +781,37 @@ namespace Icebreaker.Bot
             };
             this.telemetryClient.TrackEvent("UserActivity", properties);
         }
-    }
+
+		//If Users = Odd, randomly select 1 user and append them to the end of the User list, making the list even, but subject to one users getting two suggestions.
+		// https://github.com/OfficeDev/microsoft-teams-apps-icebreaker/issues/72#issuecomment-648827738
+		private List<Tuple<ChannelAccount, ChannelAccount>> MakePairs(List<ChannelAccount> users)
+        {
+            if (users.Count > 1)
+            {
+                this.telemetryClient.TrackTrace($"Making {users.Count / 2} pairs among {users.Count} users");
+            }
+            else
+            {
+                this.telemetryClient.TrackTrace($"Pairs could not be made because there is only 1 user in the team");
+            }
+
+            // If an odd number of users, randomly select then append one user to make an even list 
+            if (users.Count % 2 != 0)
+            {
+                var random = new Random().Next(1, users.Count);
+                users.Add(users[random]);
+            }
+
+            this.Randomize(users);
+
+            var pairs = new List<Tuple<ChannelAccount, ChannelAccount>>();
+            for (int i = 0; i < users.Count - 1; i += 2)
+            {
+                pairs.Add(new Tuple<ChannelAccount, ChannelAccount>(users[i], users[i + 1]));
+            }
+
+            return pairs;
+        } 
+		
+	}
 }
